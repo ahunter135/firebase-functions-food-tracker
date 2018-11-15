@@ -40,5 +40,27 @@ exports.sendConnectionNotification = functions.database.ref('connections/{userID
     console.log(accountInfo);
 });
 
+exports.sendCommentsNotification = functions.database.ref('posts/{postID}')
+.onUpdate(async (snap) => {
+    if (snap.after.val().comments.length > snap.before.val().comments.length) {
+        let index = snap.after.val().comments.length;
+        let user_name = snap.after.val().comments[index-1].user_name;
+        let accountInfo = await admin.database().ref('user-accounts/' + snap.after.val().uid).once('value');
+        const payload = {
+            notification: {
+                title: "New Comment",
+                body: user_name + " has commented on your post"
+            }
+        };
+        admin.messaging().sendToDevice(accountInfo.val().token, payload)
+        .then(function(success) {
+            console.log(success);
+        })
+        .catch(err => {
+            console.log(err);
+        });
+    }
+});
+
 
 
