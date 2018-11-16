@@ -42,7 +42,13 @@ exports.sendConnectionNotification = functions.database.ref('connections/{userID
 
 exports.sendCommentsNotification = functions.database.ref('posts/{postID}')
 .onUpdate(async (snap) => {
-    if (snap.after.val().comments.length > snap.before.val().comments.length) {
+    let beforeLength, afterLength;
+    if (snap.before.val().comments) beforeLength = snap.before.val().comments.length;
+    else beforeLength = 0;
+
+    if (snap.after.val().comments) afterLength = snap.after.val().comments.length;
+    else afterLength = 0;
+    if (afterLength > beforeLength) {
         let index = snap.after.val().comments.length;
         let user_name = snap.after.val().comments[index-1].user_name;
         let accountInfo = await admin.database().ref('user-accounts/' + snap.after.val().uid).once('value');
